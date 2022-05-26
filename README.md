@@ -35,3 +35,4 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ### Require
 Node version < 16.x.x (use nvm to switch version)
+Vue-cli install Vue to create project
