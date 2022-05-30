@@ -1,0 +1,11 @@
+<template>
+  <div class="login">
+    <h1>Login</h1>
+  </div>
+</template>
+
+<script lang="ts">
+export default {
+  name: "Login",
+};
+</script>
