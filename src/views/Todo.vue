@@ -1,77 +1,102 @@
 <template>
   <div class="login">
     <v-expansion-panels v-model="panel" multiple>
-      <h1>{{ panel }}</h1>
       <v-expansion-panel>
+        <v-expansion-panel-header disable-icon-rotate>
+          Item for test
+          <template v-slot:actions>
+            <v-btn @click="clearError">
+              <v-icon color="error">mdi-close-box</v-icon>
+            </v-btn>
+          </template>
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat.
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+
+      <v-expansion-panel v-for="task in tasks" :key="task.ID">
         <v-expansion-panel-header>
-          Item 1
+          <h2>{{ task.text }}</h2>
           <template v-slot:actions>
             <v-icon color="primary"> $expand </v-icon>
+            <v-icon color="error" @click="removeByID(task.ID)"
+              >mdi-close-box</v-icon
+            >
           </template>
         </v-expansion-panel-header>
         <v-expansion-panel-content>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-
-      <v-expansion-panel>
-        <v-expansion-panel-header disable-icon-rotate>
-          Item 2
-          <template v-slot:actions>
-            <v-icon color="teal"> mdi-check </v-icon>
-          </template>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-
-      <v-expansion-panel>
-        <v-expansion-panel-header disable-icon-rotate>
-          Item 3
-          <template v-slot:actions>
-            <v-button @click="clearError">
-              <v-icon color="error">mdi-close-box</v-icon>
-            </v-button>
-          </template>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
+          <p>ID: {{ task.ID }}</p>
+          <p>CreatedAt: {{ task.CreatedAt }}</p>
+          <p>UpdatedAt:{{ task.UpdatedAt }}</p>
+          <p>DeletedAtAt: {{ task.DeletedAtAt }}</p>
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
+
+    <v-btn depressed color="primary" @click="login"> LOGIN </v-btn>
+    <v-btn depressed color="primary" @click="findAll"> GET ALL TASKS </v-btn>
+
+    <h1>Panel: {{ panel }}</h1>
   </div>
 </template>
 
 <script lang="ts">
 import { Vue } from "vue-property-decorator";
+import { login, findAllTasks, removeTaskByID, ITask } from "../apiServices";
 
 interface ITodo {
-  test: string;
   panel: number[];
+  token: string;
+  error: string;
+  tasks: ITask[];
 }
 
 const Component = Vue.extend({
   name: "Todo",
   data: (): ITodo => ({
-    test: "",
     panel: [],
+    token: "",
+    tasks: [],
+    error: "",
   }),
   methods: {
-    // remove fn
+    // control panel
     clearError(): void {
-      this.test = "ddd";
       this.panel = []; // close all panel
-      // alert("wthhh!!");
+    },
+    async login(): Promise<void> {
+      const result = await login();
+
+      if (result.data) {
+        this.token = result.data.token;
+      } else {
+        this.error = JSON.stringify(result.error);
+        alert(`Error: ${this.error}`);
+      }
+    },
+    async findAll(): Promise<void> {
+      const result = await findAllTasks(this.token);
+
+      if (result.data) {
+        this.tasks = result.data.tasks;
+      } else {
+        this.error = JSON.stringify(result.error);
+        alert(`Error: ${this.error}`);
+      }
+    },
+    async removeByID(ID: number): Promise<void> {
+      const result = await removeTaskByID({ ID, token: this.token });
+
+      if (result.data?.success) {
+        await this.findAll();
+      } else {
+        this.error = JSON.stringify(result.error);
+        alert(`Error: ${this.error}`);
+      }
     },
   },
 });
