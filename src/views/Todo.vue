@@ -28,16 +28,12 @@
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
-
-    <v-btn depressed color="primary" @click="login"> LOGIN </v-btn>
-    <v-btn depressed color="primary" @click="findAll"> GET ALL TASKS </v-btn>
   </div>
 </template>
 
 <script lang="ts">
 import { Vue } from "vue-property-decorator";
 import {
-  login,
   findAllTasks,
   removeTaskByID,
   createTask,
@@ -45,7 +41,6 @@ import {
 } from "../apiServices";
 
 interface ITodo {
-  panel: number[];
   token: string;
   error: string;
   tasks: ITask[];
@@ -55,23 +50,25 @@ interface ITodo {
 const Component = Vue.extend({
   name: "Todo",
   data: (): ITodo => ({
-    panel: [],
     token: "",
     tasks: [],
     error: "",
     input: "",
   }),
-  methods: {
-    async login(): Promise<void> {
-      const result = await login();
+  // Note: beforeCreate can not access data this.xxxx
+  created(): void {
+    this.token = this.$route.params.token;
+    console.log("beforeCreate: ", "keep token");
 
-      if (result.data) {
-        this.token = result.data.token;
-      } else {
-        this.error = JSON.stringify(result.error);
-        alert(`Error: ${this.error}`);
-      }
-    },
+    if (!this.token) {
+      this.$router.push({
+        name: "Login",
+      });
+    } else {
+      this.findAll();
+    }
+  },
+  methods: {
     async findAll(): Promise<void> {
       const result = await findAllTasks(this.token);
 
